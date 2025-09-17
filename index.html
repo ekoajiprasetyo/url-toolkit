@@ -5,51 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shortlink & QR Code Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- Mengganti library QR Code ke yang lebih canggih -->
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        .tab-button.active {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            font-weight: 600;
+        .history-item:hover {
+            background-color: #f9fafb;
+        }
+        /* Memastikan QR code responsif */
+        #qr-code-container canvas {
+            width: 100% !important;
+            height: auto !important;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-8">
 
     <div class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-8">
         <h1 class="text-2xl md:text-3xl font-bold text-gray-800 text-center mb-2">URL Toolkit</h1>
-        <p class="text-center text-gray-500 mb-6">Buat shortlink dan QR code dengan mudah.</p>
+        <p class="text-center text-gray-500 mb-6">Buat shortlink dan QR code dalam satu klik.</p>
 
-        <!-- Tab Buttons -->
-        <div class="flex border-b border-gray-200 mb-6">
-            <button id="shortlink-tab-button" class="tab-button flex-1 py-3 text-center text-gray-500 border-b-2 border-transparent transition-all duration-300 active" onclick="showTab('shortlink')">
-                Shortlink
-            </button>
-            <button id="qrcode-tab-button" class="tab-button flex-1 py-3 text-center text-gray-500 border-b-2 border-transparent transition-all duration-300" onclick="showTab('qrcode')">
-                QR Code
+        <!-- Unified Generator -->
+        <div class="space-y-4">
+            <div>
+                <label for="longUrl" class="block text-sm font-medium text-gray-700 mb-1">Masukkan URL Panjang</label>
+                <input type="url" id="longUrl" placeholder="https://contoh-url-panjang-sekali.com/..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300">
+            </div>
+            <div>
+                <label for="qrTitle" class="block text-sm font-medium text-gray-700 mb-1">Judul QR Code (untuk nama file)</label>
+                <input type="text" id="qrTitle" placeholder="Contoh: Link Media Sosial" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300">
+            </div>
+            <button onclick="generateAll()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
+                <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Buat Link & QR Code</span>
             </button>
         </div>
 
-        <!-- Shortlink Generator Tab -->
-        <div id="shortlink-tab" class="tab-content">
-            <div class="space-y-4">
-                <div>
-                    <label for="longUrl" class="block text-sm font-medium text-gray-700 mb-1">URL Panjang</label>
-                    <input type="url" id="longUrl" placeholder="https://contoh-url-panjang-sekali.com/..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300">
+        <!-- Combined Results -->
+        <div id="results-container" class="mt-6 hidden flex flex-col items-center gap-6">
+            <!-- QR Code Result -->
+            <div id="qrcode-result" class="flex flex-col items-center">
+                <div class="bg-white p-3 rounded-xl shadow-lg border border-gray-100">
+                    <div id="qr-code-container" class="w-full max-w-[150px]"></div>
                 </div>
-                <button onclick="generateShortlink()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
-                    <svg id="loading-spinner-shortlink" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Buat Shortlink</span>
-                </button>
+                <button id="download-qr-btn" class="mt-4 px-4 py-1.5 text-sm font-semibold text-white bg-green-500 hover:bg-green-600 rounded-md transition-all">Unduh QR</button>
             </div>
-            <div id="shortlink-result" class="mt-6 hidden">
+            <!-- Shortlink Result -->
+            <div id="shortlink-result" class="w-full">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Hasil Shortlink:</label>
                 <div class="flex items-center space-x-2 p-3 bg-gray-100 rounded-lg">
                     <input id="shortUrl" type="text" readonly class="flex-grow bg-transparent focus:outline-none text-blue-600">
@@ -58,20 +66,8 @@
             </div>
         </div>
 
-        <!-- QR Code Generator Tab -->
-        <div id="qrcode-tab" class="tab-content hidden">
-            <div class="space-y-4">
-                 <div>
-                    <label for="qrText" class="block text-sm font-medium text-gray-700 mb-1">Teks atau URL</label>
-                    <input type="text" id="qrText" placeholder="Masukkan teks atau URL di sini..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300">
-                </div>
-                <button onclick="generateQRCode()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300">Buat QR Code</button>
-            </div>
-            <div id="qrcode-result" class="mt-6 hidden flex flex-col items-center">
-                <canvas id="qrCanvas" class="rounded-lg border border-gray-200"></canvas>
-                <a id="download-qr" download="qrcode.png" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-green-500 hover:bg-green-600 rounded-md transition-all">Unduh QR Code</a>
-            </div>
-        </div>
+        <!-- Unified History -->
+        <div id="history-container" class="mt-8"></div>
         
         <!-- Notification -->
         <div id="notification" class="fixed top-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform -translate-y-10 transition-all duration-300">
@@ -80,129 +76,245 @@
         <div id="error-notification" class="fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform -translate-y-10 transition-all duration-300">
             Terjadi kesalahan.
         </div>
-
     </div>
 
     <script>
-        const shortlinkTab = document.getElementById('shortlink-tab');
-        const qrcodeTab = document.getElementById('qrcode-tab');
-        const shortlinkTabButton = document.getElementById('shortlink-tab-button');
-        const qrcodeTabButton = document.getElementById('qrcode-tab-button');
-        
         const longUrlInput = document.getElementById('longUrl');
-        const shortUrlInput = document.getElementById('shortUrl');
-        const shortlinkResultDiv = document.getElementById('shortlink-result');
-        const loadingSpinnerShortlink = document.getElementById('loading-spinner-shortlink');
+        const qrTitleInput = document.getElementById('qrTitle');
+        const loadingSpinner = document.getElementById('loading-spinner');
         
-        const qrTextInput = document.getElementById('qrText');
+        const resultsContainer = document.getElementById('results-container');
+        const shortUrlInput = document.getElementById('shortUrl');
+        
         const qrCodeResultDiv = document.getElementById('qrcode-result');
-        const qrCanvas = document.getElementById('qrCanvas');
-        const downloadQrLink = document.getElementById('download-qr');
+        const downloadQrBtn = document.getElementById('download-qr-btn');
 
         const notification = document.getElementById('notification');
         const errorNotification = document.getElementById('error-notification');
 
-        function showTab(tabName) {
-            if (tabName === 'shortlink') {
-                shortlinkTab.classList.remove('hidden');
-                qrcodeTab.classList.add('hidden');
-                shortlinkTabButton.classList.add('active');
-                qrcodeTabButton.classList.remove('active');
-            } else {
-                shortlinkTab.classList.add('hidden');
-                qrcodeTab.classList.remove('hidden');
-                shortlinkTabButton.classList.remove('active');
-                qrcodeTabButton.classList.add('active');
-            }
-        }
+        const historyContainer = document.getElementById('history-container');
+        const HISTORY_KEY = 'urlToolkitHistory';
+        
+        let qrCodeInstance = null;
 
         function showNotification(message, isError = false) {
             const el = isError ? errorNotification : notification;
             el.textContent = message;
             el.classList.remove('opacity-0', '-translate-y-10');
             el.classList.add('opacity-100', 'translate-y-0');
+
             setTimeout(() => {
                 el.classList.remove('opacity-100', 'translate-y-0');
                 el.classList.add('opacity-0', '-translate-y-10');
             }, 3000);
         }
 
-        function copyToClipboard(elementId) {
-            const input = document.getElementById(elementId);
-            input.select();
-            input.setSelectionRange(0, 99999); // For mobile devices
+        function copyToClipboard(textToCopy, isRawText = false) {
+            if (!isRawText) {
+                const input = document.getElementById(textToCopy);
+                textToCopy = input.value;
+            }
+
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            textArea.style.position = "fixed";
+            textArea.style.top = 0;
+            textArea.style.left = 0;
+            textArea.style.opacity = 0;
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
             try {
-                document.execCommand('copy');
-                showNotification('Berhasil disalin ke clipboard!');
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showNotification('Berhasil disalin ke clipboard!');
+                } else {
+                    showNotification('Gagal menyalin', true);
+                }
             } catch (err) {
                 showNotification('Gagal menyalin', true);
             }
+
+            document.body.removeChild(textArea);
         }
 
-        async function generateShortlink() {
-            const longUrl = longUrlInput.value.trim();
-            if (!longUrl) {
-                showNotification('URL tidak boleh kosong!', true);
-                return;
-            }
-            
-            // Basic URL validation
-            try {
-                new URL(longUrl);
-            } catch (_) {
-                showNotification('Format URL tidak valid!', true);
-                return;
-            }
-
-            loadingSpinnerShortlink.classList.remove('hidden');
-            shortlinkResultDiv.classList.add('hidden');
-
-            // Using TinyURL API via a CORS proxy to avoid CORS issues in client-side JS
-            const apiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://tinyurl.com/api-create.php?url=${longUrl}`)}`;
-
+        async function getShortlink(longUrl) {
+            const apiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://is.gd/create.php?format=simple&url=${longUrl}`)}`;
             try {
                 const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
                 const shortUrl = data.contents;
-                
                 if (shortUrl && !shortUrl.toLowerCase().includes('error')) {
-                    shortUrlInput.value = shortUrl;
-                    shortlinkResultDiv.classList.remove('hidden');
+                    return shortUrl;
                 } else {
                     throw new Error('API returned an error');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                showNotification('Gagal membuat shortlink.', true);
-            } finally {
-                loadingSpinnerShortlink.classList.add('hidden');
+                console.error("Shortlink API error:", error);
+                throw new Error('Gagal membuat shortlink.');
+            }
+        }
+        
+        function displayQRCode(text) {
+            try {
+                const container = document.getElementById('qr-code-container');
+                container.innerHTML = '';
+
+                qrCodeInstance = new QRCodeStyling({
+                    width: 512,
+                    height: 512,
+                    data: text,
+                    margin: 20,
+                    dotsOptions: {
+                        color: "#000000",
+                        type: "dots"
+                    },
+                    cornersSquareOptions: {
+                        type: "extra-rounded"
+                    },
+                    backgroundOptions: {
+                        color: "#ffffff",
+                    }
+                });
+
+                qrCodeInstance.append(container);
+                qrCodeResultDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error("QR Code generation error:", error);
+                throw new Error('Gagal membuat QR Code.');
             }
         }
 
-        function generateQRCode() {
-            const text = qrTextInput.value.trim();
-            if (!text) {
-                showNotification('Teks atau URL untuk QR code tidak boleh kosong!', true);
+        async function generateAll() {
+            const longUrl = longUrlInput.value.trim();
+            if (!longUrl) {
+                showNotification('URL tidak boleh kosong', true);
+                return;
+            }
+            try {
+                new URL(longUrl);
+            } catch (_) {
+                showNotification('URL tidak valid', true);
                 return;
             }
 
-            qrCodeResultDiv.classList.remove('hidden');
-            new QRious({
-                element: qrCanvas,
-                value: text,
-                size: 200,
-                padding: 10,
-                background: 'white',
-                foreground: 'black',
-                level: 'H' // High error correction
-            });
+            loadingSpinner.classList.remove('hidden');
+            resultsContainer.classList.add('hidden');
+            
+            try {
+                const shortUrl = await getShortlink(longUrl);
+                displayQRCode(longUrl);
+                shortUrlInput.value = shortUrl;
+                
+                const qrTitle = qrTitleInput.value.trim();
+                const historyItem = {
+                    id: Date.now(),
+                    longUrl: longUrl,
+                    shortUrl: shortUrl,
+                    qrTitle: qrTitle
+                };
+                saveToHistory(historyItem);
 
-            downloadQrLink.href = qrCanvas.toDataURL('image/png');
+                resultsContainer.classList.remove('hidden');
+
+            } catch (error) {
+                showNotification(error.message || 'Terjadi kesalahan', true);
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
         }
-    </script>
 
+        function getHistory() {
+            return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+        }
+
+        function saveToHistory(item) {
+            const history = getHistory();
+            history.unshift(item);
+            if (history.length > 20) {
+                history.pop();
+            }
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function deleteHistoryItem(id) {
+            let history = getHistory();
+            history = history.filter(item => item.id !== id);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function clearHistory() {
+            localStorage.removeItem(HISTORY_KEY);
+            renderHistory();
+        }
+        
+        function recreateFromHistory(longUrl, qrTitle) {
+            longUrlInput.value = longUrl;
+            qrTitleInput.value = qrTitle;
+            displayQRCode(longUrl);
+            resultsContainer.classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function renderHistory() {
+            const history = getHistory();
+            if (history.length === 0) {
+                historyContainer.innerHTML = '';
+                return;
+            }
+
+            historyContainer.innerHTML = `
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xl font-bold text-gray-700">Riwayat</h2>
+                    <button onclick="clearHistory()" class="text-sm text-red-500 hover:underline">Hapus Semua</button>
+                </div>
+                <div class="space-y-2">
+                    ${history.map(item => `
+                        <div class="history-item flex items-center justify-between p-3 border border-gray-200 rounded-lg transition-all">
+                            <div class="flex-grow overflow-hidden mr-3">
+                                <p class="font-medium text-gray-800 truncate">${item.qrTitle || 'Tanpa Judul'}</p>
+                                <p class="font-semibold text-blue-600 truncate">${item.shortUrl}</p>
+                                <p class="text-sm text-gray-500 truncate">${item.longUrl}</p>
+                            </div>
+                            <div class="flex items-center space-x-2 flex-shrink-0">
+                                <button onclick="recreateFromHistory('${item.longUrl}', '${item.qrTitle || ''}')" title="Tampilkan QR" class="p-2 text-gray-500 hover:bg-gray-200 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M6.5 6.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zM6.5 9.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm.5-5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm2 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zM3 6a1 1 0 1 1 2 0 1 1 0 0 1-2 0zm1 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM3.5 9.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm.5-5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zM12 6a1 1 0 1 1 2 0 1 1 0 0 1-2 0zm-1 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM12.5 9.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm.5-5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5z"/></svg>
+                                </button>
+                                <button onclick="copyToClipboard('${item.shortUrl}', true)" title="Salin Shortlink" class="p-2 text-gray-500 hover:bg-gray-200 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM-1 1.5A1.5 1.5 0 0 1 .5 0h3A1.5 1.5 0 0 1 5 1.5v1A1.5 1.5 0 0 1 3.5 4h-3A1.5 1.5 0 0 1-1 2.5v-1z"/></svg>
+                                </button>
+                                <button onclick="deleteHistoryItem(${item.id})" title="Hapus" class="p-2 text-red-500 hover:bg-red-100 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        downloadQrBtn.addEventListener('click', () => {
+            if (!qrCodeInstance) return;
+
+            let filename = qrTitleInput.value.trim().replace(/[^a-zA-Z0-9 -]/g, '').replace(/\s+/g, '_');
+            if (!filename) {
+                filename = 'qrcode';
+            }
+
+            qrCodeInstance.download({
+                name: filename,
+                extension: "png"
+            });
+        });
+
+        window.onload = function () {
+            renderHistory();
+        };
+    </script>
 </body>
 </html>
